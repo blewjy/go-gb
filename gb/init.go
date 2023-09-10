@@ -6,10 +6,11 @@ var gb *gameboy
 type gameboy struct {
 	rom []byte
 
-	bus  *bus
-	cpu  *cpu
-	ram  *ram
-	cart *cart
+	bus   *bus
+	cpu   *cpu
+	timer *timer
+	ram   *ram
+	cart  *cart
 
 	shouldDebug bool
 	debug       bool
@@ -19,10 +20,11 @@ func InitWithROM(rom []byte) {
 	gb = &gameboy{
 		rom: rom,
 
-		bus:  newBus(),
-		cpu:  newCpu(),
-		ram:  newRam(),
-		cart: newCart(rom),
+		bus:   newBus(),
+		cpu:   newCpu(),
+		timer: newTimer(),
+		ram:   newRam(),
+		cart:  newCart(rom),
 	}
 }
 
@@ -36,6 +38,11 @@ func Update() {
 		}
 
 		cycles := gb.cpu.step()
+
+		for i := uint8(0); i < cycles; i++ {
+			gb.timer.clock()
+		}
+
 		currCycles += uint64(cycles)
 
 		gb.debug = false

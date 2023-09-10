@@ -36,12 +36,23 @@ func newCpu() *cpu {
 }
 
 func (c *cpu) step() uint8 {
-	opcode := gb.bus.read(c.pc)
-	// fmt.Printf("current PC: %04X, opcode: %02X\n", c.pc, opcode)
-	c.pc += 1
-	cycles := c.execute(opcode)
+	cycles := uint8(4)
+	if !c.halted {
+		opcode := gb.bus.read(c.pc)
+		c.pc += 1
+		cycles = c.execute(opcode)
 
-	c.cycles += uint64(cycles)
+		c.cycles += uint64(cycles)
+	} else {
+		intFlags := gb.bus.read(0xFF0F)
+		if intFlags > 0 {
+			c.halted = false
+		}
+	}
+
+	if c.ime {
+		c.handleInterrupts()
+	}
 
 	c.serialDebug()
 	if gb.debug && c.debugMsg != "" {
