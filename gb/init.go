@@ -52,3 +52,7 @@ func Update() {
 func EnableDebug() {
 	gb.shouldDebug = true
 }
+
+func GetDebug() string {
+	return gb.cpu.debugMsg
+}

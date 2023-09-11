@@ -41,8 +41,6 @@ func (c *cpu) step() uint8 {
 		opcode := gb.bus.read(c.pc)
 		c.pc += 1
 		cycles = c.execute(opcode)
-
-		c.cycles += uint64(cycles)
 	} else {
 		intFlags := gb.bus.read(0xFF0F)
 		if intFlags > 0 {
@@ -59,6 +57,7 @@ func (c *cpu) step() uint8 {
 		fmt.Println(c.debugMsg)
 	}
 
+	c.cycles += uint64(cycles)
 	return cycles
 }
 
