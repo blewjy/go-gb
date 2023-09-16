@@ -49,6 +49,10 @@ func Update() {
 	}
 }
 
+func StepCPU() {
+	gb.cpu.step()
+}
+
 func EnableDebug() {
 	gb.shouldDebug = true
 }

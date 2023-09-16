@@ -1,9 +1,5 @@
 package gb
 
-import (
-	"fmt"
-)
-
 type cart struct {
 	rom []uint8
 }
@@ -23,7 +19,5 @@ func (c *cart) read(addr uint16) uint8 {
 }
 
 func (c *cart) write(addr uint16, value uint8) {
-	fmt.Printf("!! WARNING !! Writing to ROM, addr: %04X, value: %02X\n", addr, value)
-	//panic("cannot write to rom")
-	//c.rom[addr] = value
+	c.rom[addr] = value
 }

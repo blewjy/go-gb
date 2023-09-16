@@ -39,6 +39,7 @@ func (b *bus) read(addr uint16) uint8 {
 
 func (b *bus) write(addr uint16, value uint8) {
 	if addr < 0x8000 {
+		fmt.Printf("!! WARNING !! Writing to ROM, addr: %04X, value: %02X\n", addr, value)
 		gb.cart.write(addr, value)
 	} else if addr < 0xA000 {
 		gb.ram.write(addr, value)
