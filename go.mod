@@ -1,6 +1,6 @@
 module github.com/blewjy/fire-gb
 
-go 1.21.0
+go 1.20
 
 require github.com/hajimehoshi/ebiten/v2 v2.5.9
 

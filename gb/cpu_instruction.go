@@ -16,7 +16,7 @@ func (c *cpu) illegal() uint8 {
 }
 
 func (c *cpu) cb_prefix() uint8 {
-	cbOpcode := gb.bus.read(c.pc)
+	cbOpcode := c.gb.bus.read(c.pc)
 	c.pc += 1
 	return opcodeToCBInst[cbOpcode](c)
 }
@@ -39,7 +39,7 @@ func (c *cpu) ld_r_r(dr, sr register) uint8 {
 // Clock cycles: 8
 // Opcodes:
 func (c *cpu) ld_r_n(dr register) uint8 {
-	v := gb.bus.read(c.pc)
+	v := c.gb.bus.read(c.pc)
 	c.pc += 1
 	c.writeRegister(dr, v)
 	// log.Info("ld_r_n\tLD %s, %02x", dr.name(), v)
@@ -52,7 +52,7 @@ func (c *cpu) ld_r_n(dr register) uint8 {
 // Opcodes:
 func (c *cpu) ld_r_HL(dr register) uint8 {
 	a := c.readRegister16(reg_hl)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(dr, v)
 	// log.Info("ld_r_HL\tLD %s, (HL)[%02X]", dr.name(), v)
 	return 8
@@ -65,7 +65,7 @@ func (c *cpu) ld_r_HL(dr register) uint8 {
 func (c *cpu) ld_HL_r(sr register) uint8 {
 	v := c.readRegister(sr)
 	a := c.readRegister16(reg_hl)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_HL_r\tLD (HL), %s[%02X]", sr.name(), v)
 	return 8
 }
@@ -75,10 +75,10 @@ func (c *cpu) ld_HL_r(sr register) uint8 {
 // Clock cycles: 12
 // Opcodes:
 func (c *cpu) ld_HL_n() uint8 {
-	v := gb.bus.read(c.pc)
+	v := c.gb.bus.read(c.pc)
 	c.pc += 1
 	a := c.readRegister16(reg_hl)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_HL_n\tLD (HL), %02X", v)
 	return 12
 }
@@ -89,7 +89,7 @@ func (c *cpu) ld_HL_n() uint8 {
 // Opcodes:
 func (c *cpu) ld_a_BC() uint8 {
 	a := c.readRegister16(reg_bc)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	// log.Info("ld_a_BC\tLD A, (BC)[%02X]", v)
 	return 8
@@ -100,7 +100,7 @@ func (c *cpu) ld_a_BC() uint8 {
 // Clock cycles: 8
 func (c *cpu) ld_a_DE() uint8 {
 	a := c.readRegister16(reg_de)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	// log.Info("ld_a_DE\tLD A, (DE)[%02X]", v)
 	return 8
@@ -110,9 +110,9 @@ func (c *cpu) ld_a_DE() uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) ld_a_NN() uint8 {
-	a := gb.bus.read16(c.pc)
+	a := c.gb.bus.read16(c.pc)
 	c.pc += 2
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	// log.Info("ld_a_NN\tLD A, (%04X)[%02X]", a, v)
 	return 16
@@ -124,7 +124,7 @@ func (c *cpu) ld_a_NN() uint8 {
 func (c *cpu) ld_BC_a() uint8 {
 	a := c.readRegister16(reg_bc)
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_BC_a\tLD (%04X), A[%02X]", a, v)
 	return 8
 }
@@ -135,7 +135,7 @@ func (c *cpu) ld_BC_a() uint8 {
 func (c *cpu) ld_DE_a() uint8 {
 	a := c.readRegister16(reg_de)
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_DE_a\tLD (%04X), A[%02X]", a, v)
 	return 8
 }
@@ -144,10 +144,10 @@ func (c *cpu) ld_DE_a() uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) ld_NN_a() uint8 {
-	a := gb.bus.read16(c.pc)
+	a := c.gb.bus.read16(c.pc)
 	c.pc += 2
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_NN_a\tLD (%04X), A[%02X]", a, v)
 	return 16
 }
@@ -158,10 +158,10 @@ func (c *cpu) ld_NN_a() uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) ld_a_ff00n() uint8 {
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	a := 0xFF00 + uint16(n)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	// log.Info("ld_a_ff00n\tLD A, (FF00+%02X)[%02X]", n, v)
 	return 12
@@ -173,11 +173,11 @@ func (c *cpu) ld_a_ff00n() uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) ld_ff00n_a() uint8 {
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	a := 0xFF00 + uint16(n)
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_ff00n_a\tLD (FF00+%02X), A[%02X]", n, v)
 	return 12
 }
@@ -189,7 +189,7 @@ func (c *cpu) ld_ff00n_a() uint8 {
 // Clock cycles: 8
 func (c *cpu) ld_a_ff00c() uint8 {
 	a := 0xFF00 + uint16(c.readRegister(reg_c))
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	// log.Info("ld_a_ff00c\tLD A, (FF00+C)[%02X]", v)
 	return 8
@@ -203,7 +203,7 @@ func (c *cpu) ld_a_ff00c() uint8 {
 func (c *cpu) ld_ff00c_a() uint8 {
 	a := 0xFF00 + uint16(c.readRegister(reg_c))
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	// log.Info("ld_ff00c_a\tLD (FF00+C), A[%02X]", v)
 	return 8
 }
@@ -215,7 +215,7 @@ func (c *cpu) ld_ff00c_a() uint8 {
 func (c *cpu) ldi_HL_a() uint8 {
 	a := c.readRegister16(reg_hl)
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	c.writeRegister16(reg_hl, a+1)
 	// log.Info("ldi_hl_a\tLDI (HL), A[%02X]", v)
 	return 8
@@ -227,7 +227,7 @@ func (c *cpu) ldi_HL_a() uint8 {
 // Clock cycles: 8
 func (c *cpu) ldi_a_HL() uint8 {
 	a := c.readRegister16(reg_hl)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	c.writeRegister16(reg_hl, a+1)
 	// log.Info("ldi_a_hl\tLDI A, (HL)[%02X]", v)
@@ -241,7 +241,7 @@ func (c *cpu) ldi_a_HL() uint8 {
 func (c *cpu) ldd_HL_a() uint8 {
 	a := c.readRegister16(reg_hl)
 	v := c.readRegister(reg_a)
-	gb.bus.write(a, v)
+	c.gb.bus.write(a, v)
 	c.writeRegister16(reg_hl, a-1)
 	// log.Info("ldd_HL_a\tLDD (HL), A[%02X]", v)
 	return 8
@@ -253,7 +253,7 @@ func (c *cpu) ldd_HL_a() uint8 {
 // Clock cycles: 8
 func (c *cpu) ldd_a_HL() uint8 {
 	a := c.readRegister16(reg_hl)
-	v := gb.bus.read(a)
+	v := c.gb.bus.read(a)
 	c.writeRegister(reg_a, v)
 	c.writeRegister16(reg_hl, a-1)
 	// log.Info("ldd_a_HL\tLDD A, (HL)[%02X]", v)
@@ -266,7 +266,7 @@ func (c *cpu) ldd_a_HL() uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) ld_rr_nn(dr register) uint8 {
-	v := gb.bus.read16(c.pc)
+	v := c.gb.bus.read16(c.pc)
 	c.pc += 2
 	c.writeRegister16(dr, v)
 	// log.Info("ld_rr_nn\tLD %s, %04X", dr.name(), v)
@@ -278,9 +278,9 @@ func (c *cpu) ld_rr_nn(dr register) uint8 {
 // Clock cycles: 20
 func (c *cpu) ld_NN_sp() uint8 {
 	v := c.sp
-	a := gb.bus.read16(c.pc)
+	a := c.gb.bus.read16(c.pc)
 	c.pc += 2
-	gb.bus.write16(a, v)
+	c.gb.bus.write16(a, v)
 	// log.Info("ld_NN_sp\tLD (%04X), SP[%04X]", a, v)
 	return 20
 }
@@ -348,7 +348,7 @@ func (c *cpu) add_a_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) add_a_n() uint8 {
 	a := uint16(c.readRegister(reg_a))
-	n := uint16(gb.bus.read(c.pc))
+	n := uint16(c.gb.bus.read(c.pc))
 	c.pc += 1
 	result := a + n
 
@@ -369,7 +369,7 @@ func (c *cpu) add_a_n() uint8 {
 func (c *cpu) add_a_HL() uint8 {
 	a := uint16(c.readRegister(reg_a))
 	hlValue := c.readRegister16(reg_hl)
-	n := uint16(gb.bus.read(hlValue))
+	n := uint16(c.gb.bus.read(hlValue))
 	result := a + n
 
 	c.setFlag(flagZ, uint8(result) == 0)
@@ -414,7 +414,7 @@ func (c *cpu) adc_a_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) adc_a_n() uint8 {
 	a := uint16(c.readRegister(reg_a))
-	n := uint16(gb.bus.read(c.pc))
+	n := uint16(c.gb.bus.read(c.pc))
 	c.pc += 1
 
 	carry := c.getFlag(flagC)
@@ -442,7 +442,7 @@ func (c *cpu) adc_a_n() uint8 {
 func (c *cpu) adc_a_HL() uint8 {
 	a := uint16(c.readRegister(reg_a))
 	hlValue := c.readRegister16(reg_hl)
-	n := uint16(gb.bus.read(hlValue))
+	n := uint16(c.gb.bus.read(hlValue))
 	carry := c.getFlag(flagC)
 	carryInt := uint16(0)
 	if carry {
@@ -487,7 +487,7 @@ func (c *cpu) sub_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) sub_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	result := a - n
 
@@ -509,7 +509,7 @@ func (c *cpu) sub_n() uint8 {
 func (c *cpu) sub_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 	result := a - n
 
 	c.setFlag(flagZ, uint8(result) == 0)
@@ -554,7 +554,7 @@ func (c *cpu) sbc_a_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) sbc_a_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	carry := c.getFlag(flagC)
 	carryInt := uint8(0)
@@ -582,7 +582,7 @@ func (c *cpu) sbc_a_n() uint8 {
 func (c *cpu) sbc_a_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 	carry := c.getFlag(flagC)
 	carryInt := uint8(0)
 	if carry {
@@ -627,7 +627,7 @@ func (c *cpu) and_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) and_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	result := a & n
 
@@ -649,7 +649,7 @@ func (c *cpu) and_n() uint8 {
 func (c *cpu) and_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 	result := a & n
 
 	c.setFlag(flagZ, result == 0)
@@ -689,7 +689,7 @@ func (c *cpu) xor_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) xor_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	result := a ^ n
 
@@ -711,7 +711,7 @@ func (c *cpu) xor_n() uint8 {
 func (c *cpu) xor_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 	result := a ^ n
 
 	c.setFlag(flagZ, result == 0)
@@ -751,7 +751,7 @@ func (c *cpu) or_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) or_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 	result := a | n
 
@@ -773,7 +773,7 @@ func (c *cpu) or_n() uint8 {
 func (c *cpu) or_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 	result := a | n
 
 	c.setFlag(flagZ, result == 0)
@@ -810,7 +810,7 @@ func (c *cpu) cp_r(r register) uint8 {
 // Clock cycles: 8
 func (c *cpu) cp_n() uint8 {
 	a := c.readRegister(reg_a)
-	n := gb.bus.read(c.pc)
+	n := c.gb.bus.read(c.pc)
 	c.pc += 1
 
 	c.setFlag(flagZ, a == n)
@@ -829,7 +829,7 @@ func (c *cpu) cp_n() uint8 {
 func (c *cpu) cp_HL() uint8 {
 	a := c.readRegister(reg_a)
 	hlValue := c.readRegister16(reg_hl)
-	n := gb.bus.read(hlValue)
+	n := c.gb.bus.read(hlValue)
 
 	c.setFlag(flagZ, a == n)
 	c.setFlag(flagN, true)
@@ -864,14 +864,14 @@ func (c *cpu) inc_r(r register) uint8 {
 // Clock cycles: 12
 func (c *cpu) inc_HL() uint8 {
 	hlValue := c.readRegister16(reg_hl)
-	value := gb.bus.read(hlValue)
+	value := c.gb.bus.read(hlValue)
 	result := value + 1
 
 	c.setFlag(flagZ, result == 0)
 	c.setFlag(flagN, false)
 	c.setFlag(flagH, (value&0x0F) == 0x0F)
 
-	gb.bus.write(hlValue, result)
+	c.gb.bus.write(hlValue, result)
 
 	return 12
 
@@ -901,14 +901,14 @@ func (c *cpu) dec_r(r register) uint8 {
 // Clock cycles: 12
 func (c *cpu) dec_HL() uint8 {
 	hlValue := c.readRegister16(reg_hl)
-	value := gb.bus.read(hlValue)
+	value := c.gb.bus.read(hlValue)
 	result := value - 1
 
 	c.setFlag(flagZ, result == 0)
 	c.setFlag(flagN, true)
 	c.setFlag(flagH, (value&0x0F) == 0x00)
 
-	gb.bus.write(hlValue, result)
+	c.gb.bus.write(hlValue, result)
 
 	return 12
 
@@ -1015,7 +1015,7 @@ func (c *cpu) dec_rr(rr register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) add_sp_dd() uint8 {
-	n := int8(gb.bus.read(c.pc))
+	n := int8(c.gb.bus.read(c.pc))
 	c.pc += 1
 
 	oldSP := c.sp
@@ -1037,7 +1037,7 @@ func (c *cpu) add_sp_dd() uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) ld_hl_sp_dd() uint8 {
-	n := int8(gb.bus.read(c.pc))
+	n := int8(c.gb.bus.read(c.pc))
 	c.pc += 1
 
 	oldSP := c.sp
@@ -1154,7 +1154,7 @@ func (c *cpu) rlc_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) rlc_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	carry := value >> 7
 
 	result := (value << 1) | carry
@@ -1164,7 +1164,7 @@ func (c *cpu) rlc_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, carry != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("rlc_HL\tRLC (HL)[%02X]", result)
 }
@@ -1192,7 +1192,7 @@ func (c *cpu) rl_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) rl_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	carry := c.getFlag(flagC)
 
 	result := (value << 1) | boolToUint8(carry)
@@ -1202,7 +1202,7 @@ func (c *cpu) rl_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, value>>7 != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("rl_HL\tRL (HL)[%02X]", result)
 }
@@ -1230,7 +1230,7 @@ func (c *cpu) rrc_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) rrc_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	carry := value & 0x01
 
 	result := (value >> 1) | (carry << 7)
@@ -1240,7 +1240,7 @@ func (c *cpu) rrc_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, carry != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("rrc_HL\tRRC (HL)[%02X]", result)
 }
@@ -1268,7 +1268,7 @@ func (c *cpu) rr_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) rr_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	carry := c.getFlag(flagC)
 
 	result := (value >> 1) | (boolToUint8(carry) << 7)
@@ -1278,7 +1278,7 @@ func (c *cpu) rr_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, (value&0x01) != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("rr_HL\tRR (HL)[%02X]", result)
 }
@@ -1305,7 +1305,7 @@ func (c *cpu) sla_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) sla_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 
 	result := value << 1
 
@@ -1314,7 +1314,7 @@ func (c *cpu) sla_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, value>>7 != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("sla_HL\tSLA (HL)[%02X]", result)
 }
@@ -1341,7 +1341,7 @@ func (c *cpu) swap_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) swap_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 
 	result := ((value & 0x0F) << 4) | ((value & 0xF0) >> 4)
 
@@ -1350,7 +1350,7 @@ func (c *cpu) swap_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, false)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("swap_HL\tSWAP (HL)[%02X]", result)
 }
@@ -1378,7 +1378,7 @@ func (c *cpu) sra_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) sra_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	msb := value & 0x80
 
 	result := (value >> 1) | msb
@@ -1388,7 +1388,7 @@ func (c *cpu) sra_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, value&0x01 != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("sra_HL\tSRA (HL)[%02X]", result)
 }
@@ -1415,7 +1415,7 @@ func (c *cpu) srl_r(r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) srl_HL() uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 
 	result := value >> 1
 
@@ -1424,7 +1424,7 @@ func (c *cpu) srl_HL() uint8 {
 	c.setFlag(flagH, false)
 	c.setFlag(flagC, value&0x01 != 0)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("srl_HL\tSRL (HL)[%02X]", result)
 }
@@ -1449,7 +1449,7 @@ func (c *cpu) bit_n_r(bit int, r register) uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) bit_n_HL(bit int) uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 
 	c.setFlag(flagZ, (value>>bit)&1 == 0)
 	c.setFlag(flagN, false)
@@ -1475,10 +1475,10 @@ func (c *cpu) set_n_r(bit int, r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) set_n_HL(bit int) uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	result := value | (1 << bit)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("set_%d_HL\tSET %d, (HL)", bit, bit)
 }
@@ -1499,10 +1499,10 @@ func (c *cpu) res_n_r(bit int, r register) uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) res_n_HL(bit int) uint8 {
-	value := gb.bus.read(c.readRegister16(reg_hl))
+	value := c.gb.bus.read(c.readRegister16(reg_hl))
 	result := value & ^(1 << bit)
 
-	gb.bus.write(c.readRegister16(reg_hl), result)
+	c.gb.bus.write(c.readRegister16(reg_hl), result)
 	return 16
 	// log.Info("res_%d_HL\tRES %d, (HL)", bit, bit)
 }
@@ -1584,7 +1584,7 @@ func (c *cpu) ei() uint8 {
 //
 // Clock cycles: 16
 func (c *cpu) jp_nn() uint8 {
-	address := gb.bus.read16(c.pc)
+	address := c.gb.bus.read16(c.pc)
 	c.pc = address
 	return 16
 	// log.Info("jp_nn\tJP %04X", address)
@@ -1604,7 +1604,7 @@ func (c *cpu) jp_HL() uint8 {
 //
 // Clock cycles: 12(false)/16(true)
 func (c *cpu) jp_f_nn(condition condition) uint8 {
-	address := gb.bus.read16(c.pc)
+	address := c.gb.bus.read16(c.pc)
 	c.pc += 2
 
 	cycles := uint8(0)
@@ -1622,7 +1622,7 @@ func (c *cpu) jp_f_nn(condition condition) uint8 {
 //
 // Clock cycles: 12
 func (c *cpu) jr_PC_dd() uint8 {
-	offset := gb.bus.read(c.pc)
+	offset := c.gb.bus.read(c.pc)
 	c.pc += 1
 	newPC := uint16(int(c.pc) + int(int8(offset)))
 	c.pc = newPC
@@ -1634,7 +1634,7 @@ func (c *cpu) jr_PC_dd() uint8 {
 //
 // Clock cycles: 8(false)/12(true)
 func (c *cpu) jr_f_PC_dd(condition condition) uint8 {
-	offset := gb.bus.read(c.pc)
+	offset := c.gb.bus.read(c.pc)
 	c.pc += 1
 	var cycles uint8
 	if c.evalCond(condition) {
@@ -1652,7 +1652,7 @@ func (c *cpu) jr_f_PC_dd(condition condition) uint8 {
 //
 // Clock cycles: 24
 func (c *cpu) call_nn() uint8 {
-	address := gb.bus.read16(c.pc)
+	address := c.gb.bus.read16(c.pc)
 	c.pc += 2
 	c.push16(c.pc)
 	c.pc = address
@@ -1664,7 +1664,7 @@ func (c *cpu) call_nn() uint8 {
 //
 // Clock cycles: 12(false)/24(true)
 func (c *cpu) call_f_nn(condition condition) uint8 {
-	address := gb.bus.read16(c.pc)
+	address := c.gb.bus.read16(c.pc)
 	c.pc += 2
 	var cycles uint8
 	if c.evalCond(condition) {

@@ -1,14 +1,18 @@
 package gb
 
 type timer struct {
+	gb *Gameboy
+
 	div  uint16
 	tima uint8
 	tma  uint8
 	tac  uint8
 }
 
-func newTimer() *timer {
+func newTimer(gb *Gameboy) *timer {
 	return &timer{
+		gb: gb,
+
 		div: 0xABCC,
 	}
 }
@@ -38,7 +42,7 @@ func (t *timer) clock() {
 		t.tima += 1
 		if t.tima == 0xFF {
 			t.tima = t.tma
-			gb.cpu.reqInterrupt(cpuInterruptTimer)
+			t.gb.cpu.reqInterrupt(cpuInterruptTimer)
 		}
 	}
 }

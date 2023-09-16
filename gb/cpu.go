@@ -7,6 +7,8 @@ const (
 )
 
 type cpu struct {
+	gb *Gameboy
+
 	cycles uint64
 
 	a  uint8
@@ -26,8 +28,10 @@ type cpu struct {
 	debugMsg string
 }
 
-func newCpu() *cpu {
+func newCpu(gb *Gameboy) *cpu {
 	return &cpu{
+		gb: gb,
+
 		pc: 0x0100,
 		sp: 0xFFFE,
 
@@ -38,11 +42,11 @@ func newCpu() *cpu {
 func (c *cpu) step() uint8 {
 	cycles := uint8(4)
 	if !c.halted {
-		opcode := gb.bus.read(c.pc)
+		opcode := c.gb.bus.read(c.pc)
 		c.pc += 1
 		cycles = c.execute(opcode)
 	} else {
-		intFlags := gb.bus.read(0xFF0F)
+		intFlags := c.gb.bus.read(0xFF0F)
 		if intFlags > 0 {
 			c.halted = false
 		}
@@ -53,7 +57,7 @@ func (c *cpu) step() uint8 {
 	}
 
 	c.serialDebug()
-	if gb.debug && c.debugMsg != "" {
+	if c.gb.debug && c.debugMsg != "" {
 		fmt.Println(c.debugMsg)
 	}
 
@@ -66,9 +70,9 @@ func (c *cpu) execute(opcode uint8) uint8 {
 }
 
 func (c *cpu) serialDebug() {
-	if gb.bus.read(0xFF02) == 0x81 {
-		v := gb.bus.read(0xFF01)
+	if c.gb.bus.read(0xFF02) == 0x81 {
+		v := c.gb.bus.read(0xFF01)
 		c.debugMsg += string(v)
-		gb.bus.write(0xFF02, 0x01)
+		c.gb.bus.write(0xFF02, 0x01)
 	}
 }

@@ -1,9 +1,6 @@
 package gb
 
-// Global gb master struct
-var gb *gameboy
-
-type gameboy struct {
+type Gameboy struct {
 	rom []byte
 
 	bus   *bus
@@ -16,20 +13,22 @@ type gameboy struct {
 	debug       bool
 }
 
-func InitWithROM(rom []byte) {
-	gb = &gameboy{
+func InitWithROM(rom []byte) *Gameboy {
+	gb := &Gameboy{
 		rom: rom,
-
-		bus:   newBus(),
-		cpu:   newCpu(),
-		timer: newTimer(),
-		ram:   newRam(),
-		cart:  newCart(rom),
 	}
+
+	gb.bus = newBus(gb)
+	gb.cpu = newCpu(gb)
+	gb.timer = newTimer(gb)
+	gb.ram = newRam()
+	gb.cart = newCart(rom)
+
+	return gb
 }
 
 // Update must be called at 60Hz
-func Update() {
+func (gb *Gameboy) Update() {
 	currCycles := uint64(0)
 	for currCycles < cpuFreq/60 {
 		if gb.shouldDebug {
@@ -49,14 +48,14 @@ func Update() {
 	}
 }
 
-func StepCPU() {
+func (gb *Gameboy) StepCPU() {
 	gb.cpu.step()
 }
 
-func EnableDebug() {
+func (gb *Gameboy) EnableDebug() {
 	gb.shouldDebug = true
 }
 
-func GetDebug() string {
+func (gb *Gameboy) GetDebug() string {
 	return gb.cpu.debugMsg
 }

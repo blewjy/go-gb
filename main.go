@@ -16,9 +16,9 @@ func main() {
 		panic(err)
 	}
 
-	gb.InitWithROM(romBytes)
-
 	g := &game{
+		gb: gb.InitWithROM(romBytes),
+		
 		start: time.Now(),
 	}
 	if err := ebiten.RunGame(g); err != nil {

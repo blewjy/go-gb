@@ -11,8 +11,8 @@ const (
 )
 
 func (c *cpu) reqInterrupt(i cpuInterrupt) {
-	intFlags := gb.bus.read(0xFF0F) | uint8(i)
-	gb.bus.write(0xFF0F, intFlags)
+	intFlags := c.gb.bus.read(0xFF0F) | uint8(i)
+	c.gb.bus.write(0xFF0F, intFlags)
 }
 
 func (c *cpu) isBitSet(d uint8, bit uint8) bool {
@@ -22,14 +22,14 @@ func (c *cpu) isBitSet(d uint8, bit uint8) bool {
 func (c *cpu) commonInterrupt(interruptFlag uint8, interrupt cpuInterrupt, addr uint16) {
 	c.push16(c.pc)
 	c.pc = addr
-	gb.bus.write(0xFF0F, interruptFlag&(^uint8(interrupt)))
+	c.gb.bus.write(0xFF0F, interruptFlag&(^uint8(interrupt)))
 	c.halted = false
 	c.ime = false
 }
 
 func (c *cpu) handleInterrupts() {
-	interruptEnable := gb.bus.read(0xFFFF)
-	interruptFlag := gb.bus.read(0xFF0F)
+	interruptEnable := c.gb.bus.read(0xFFFF)
+	interruptFlag := c.gb.bus.read(0xFF0F)
 	if c.isBitSet(interruptEnable, uint8(cpuInterruptVBlank)) && c.isBitSet(interruptFlag, uint8(cpuInterruptVBlank)) {
 		c.commonInterrupt(interruptFlag, cpuInterruptVBlank, 0x0040)
 	} else if c.isBitSet(interruptEnable, uint8(cpuInterruptLcdStat)) && c.isBitSet(interruptFlag, uint8(cpuInterruptLcdStat)) {

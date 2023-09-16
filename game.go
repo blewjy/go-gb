@@ -10,6 +10,8 @@ import (
 )
 
 type game struct {
+	gb *gb.Gameboy
+
 	ticks uint64
 	start time.Time
 }
@@ -19,10 +21,10 @@ func (g *game) Update() error {
 	g.updateTitle()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		gb.EnableDebug()
+		g.gb.EnableDebug()
 	}
 
-	gb.Update()
+	g.gb.Update()
 
 	return nil
 }

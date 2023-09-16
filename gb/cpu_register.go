@@ -134,26 +134,26 @@ func (c *cpu) writeRegister16(r register, v uint16) {
 
 func (c *cpu) push(v uint8) {
 	c.sp -= 1
-	gb.bus.write(c.sp, v)
+	c.gb.bus.write(c.sp, v)
 }
 
 func (c *cpu) pop() uint8 {
-	v := gb.bus.read(c.sp)
+	v := c.gb.bus.read(c.sp)
 	c.sp += 1
 	return v
 }
 
 func (c *cpu) push16(v uint16) {
 	c.sp -= 1
-	gb.bus.write(c.sp, uint8(v>>8))
+	c.gb.bus.write(c.sp, uint8(v>>8))
 	c.sp -= 1
-	gb.bus.write(c.sp, uint8(v))
+	c.gb.bus.write(c.sp, uint8(v))
 }
 
 func (c *cpu) pop16() uint16 {
-	lo := gb.bus.read(c.sp)
+	lo := c.gb.bus.read(c.sp)
 	c.sp += 1
-	hi := gb.bus.read(c.sp)
+	hi := c.gb.bus.read(c.sp)
 	c.sp += 1
 	return uint16(hi)<<8 | uint16(lo)
 }

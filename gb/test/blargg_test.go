@@ -94,15 +94,15 @@ func TestBlargg(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			gb.InitWithROM(romBytes)
+			gameboy := gb.InitWithROM(romBytes)
 			for i := 0; i < tt.clocks; i++ {
-				gb.Update()
-				got := strings.ReplaceAll(gb.GetDebug(), "\n", "")
+				gameboy.Update()
+				got := strings.ReplaceAll(gameboy.GetDebug(), "\n", "")
 				if got == tt.want {
 					break
 				}
 			}
-			got := strings.ReplaceAll(gb.GetDebug(), "\n", "")
+			got := strings.ReplaceAll(gameboy.GetDebug(), "\n", "")
 			if got != tt.want {
 				t.Errorf("%v: got = %v, want = %v", tt.name, got, tt.want)
 			}

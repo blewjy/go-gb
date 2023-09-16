@@ -6,7 +6,7 @@ type ram struct {
 
 func newRam() *ram {
 	return &ram{
-		memory: make([]uint8, 0xFFFF),
+		memory: make([]uint8, 65536),
 	}
 }
 
