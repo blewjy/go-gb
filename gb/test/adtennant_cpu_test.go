@@ -1,7 +1,12 @@
 package test
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/blewjy/fire-gb/gb"
+	"os"
 	"strconv"
+	"testing"
 )
 
 type CPUData struct {
@@ -50,68 +55,114 @@ func parseHexStringToUint16(s string) uint16 {
 	return uint16(hexValue)
 }
 
-//
-//func TestAdtennantCpu(t *testing.T) {
-//
-//	testCaseFile, err := os.ReadFile("adtennant/v1/1a.json")
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	var allData []JSONData
-//	if err := json.Unmarshal(testCaseFile, &allData); err != nil {
-//		panic(err)
-//	}
-//
-//	for _, data := range allData {
-//		t.Run(data.Name, func(t *testing.T) {
-//			tgb := gb.InitTestGameboy(gb.TestGameboyState{
-//				CPU: gb.TestGameboyStateCPU{
-//					A:  parseHexStringToUint8(data.Initial.CPU.A),
-//					B:  parseHexStringToUint8(data.Initial.CPU.B),
-//					C:  parseHexStringToUint8(data.Initial.CPU.C),
-//					D:  parseHexStringToUint8(data.Initial.CPU.D),
-//					E:  parseHexStringToUint8(data.Initial.CPU.E),
-//					F:  parseHexStringToUint8(data.Initial.CPU.F),
-//					H:  parseHexStringToUint8(data.Initial.CPU.H),
-//					L:  parseHexStringToUint8(data.Initial.CPU.L),
-//					PC: parseHexStringToUint16(data.Initial.CPU.PC),
-//					SP: parseHexStringToUint16(data.Initial.CPU.SP),
-//				},
-//				RAM: func() map[uint16]uint8 {
-//					m := map[uint16]uint8{}
-//					for _, ramData := range data.Initial.RAM {
-//						m[parseHexStringToUint16(ramData[0])] = parseHexStringToUint8(ramData[1])
-//					}
-//					return m
-//				}(),
-//				ROM: make([]uint8, 0xFFFF),
-//			})
-//
-//			tgb.StepCPU()
-//
-//			finalState := tgb.ExportState()
-//			wantFinalState := gb.TestGameboyState{
-//				CPU: gb.TestGameboyStateCPU{
-//					A:  parseHexStringToUint8(data.Final.CPU.A),
-//					B:  parseHexStringToUint8(data.Final.CPU.B),
-//					C:  parseHexStringToUint8(data.Final.CPU.C),
-//					D:  parseHexStringToUint8(data.Final.CPU.D),
-//					E:  parseHexStringToUint8(data.Final.CPU.E),
-//					F:  parseHexStringToUint8(data.Final.CPU.F),
-//					H:  parseHexStringToUint8(data.Final.CPU.H),
-//					L:  parseHexStringToUint8(data.Final.CPU.L),
-//					PC: parseHexStringToUint16(data.Final.CPU.PC),
-//					SP: parseHexStringToUint16(data.Final.CPU.SP),
-//				},
-//				RAM: map[uint16]uint8{
-//					parseHexStringToUint16(data.Final.RAM[0][0]): parseHexStringToUint8(data.Final.RAM[0][1]),
-//				},
-//			}
-//
-//			if finalState.CPU != wantFinalState.CPU {
-//				t.Errorf("%v: got = %+v, want = %+v", data.Name, finalState.CPU, wantFinalState.CPU)
-//			}
-//		})
-//	}
-//}
+func TestAdtennantCpu(t *testing.T) {
+	dir := "./adtennant/v1" // Specify the directory you want to read
+
+	// Open the directory
+	f, err := os.Open(dir)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// Read the directory content
+	files, err := f.Readdir(-1) // Use -1 to read all entries, or a positive number to limit the number of entries read
+	if err != nil {
+		panic(err)
+	}
+
+	choose := []string{"f0.json"}
+
+	// Loop through each file
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		shouldSkip := true
+		for _, s := range choose {
+			if file.Name() == s {
+				shouldSkip = false
+			}
+		}
+		if shouldSkip {
+			continue
+		}
+
+		fileName := fmt.Sprintf("adtennant/v1/%s", file.Name())
+		testCaseFile, err := os.ReadFile(fileName)
+		if err != nil {
+			panic(err)
+		}
+
+		var allData []JSONData
+		if err := json.Unmarshal(testCaseFile, &allData); err != nil {
+			panic(err)
+		}
+
+		choose := []string{"f0 28 f3"}
+
+		for _, data := range allData {
+			shouldDo := false
+			for _, s := range choose {
+				if data.Name == s {
+					shouldDo = true
+				}
+			}
+			if !shouldDo {
+				continue
+			}
+
+			t.Run(data.Name, func(t *testing.T) {
+				tgb := gb.InitWithROM(make([]uint8, 0xFFFF))
+				tgb.SetState(
+					gb.State{
+						CPU: gb.CPUState{
+							A:  parseHexStringToUint8(data.Initial.CPU.A),
+							B:  parseHexStringToUint8(data.Initial.CPU.B),
+							C:  parseHexStringToUint8(data.Initial.CPU.C),
+							D:  parseHexStringToUint8(data.Initial.CPU.D),
+							E:  parseHexStringToUint8(data.Initial.CPU.E),
+							F:  parseHexStringToUint8(data.Initial.CPU.F),
+							H:  parseHexStringToUint8(data.Initial.CPU.H),
+							L:  parseHexStringToUint8(data.Initial.CPU.L),
+							PC: parseHexStringToUint16(data.Initial.CPU.PC),
+							SP: parseHexStringToUint16(data.Initial.CPU.SP),
+						},
+						RAM: func() map[uint16]uint8 {
+							m := map[uint16]uint8{}
+							for _, ramData := range data.Initial.RAM {
+								m[parseHexStringToUint16(ramData[0])] = parseHexStringToUint8(ramData[1])
+							}
+							return m
+						}(),
+					})
+
+				tgb.StepCPU()
+
+				finalState := tgb.ExportState()
+				wantFinalState := gb.State{
+					CPU: gb.CPUState{
+						A:  parseHexStringToUint8(data.Final.CPU.A),
+						B:  parseHexStringToUint8(data.Final.CPU.B),
+						C:  parseHexStringToUint8(data.Final.CPU.C),
+						D:  parseHexStringToUint8(data.Final.CPU.D),
+						E:  parseHexStringToUint8(data.Final.CPU.E),
+						F:  parseHexStringToUint8(data.Final.CPU.F),
+						H:  parseHexStringToUint8(data.Final.CPU.H),
+						L:  parseHexStringToUint8(data.Final.CPU.L),
+						PC: parseHexStringToUint16(data.Final.CPU.PC),
+						SP: parseHexStringToUint16(data.Final.CPU.SP),
+					},
+					RAM: map[uint16]uint8{
+						parseHexStringToUint16(data.Final.RAM[0][0]): parseHexStringToUint8(data.Final.RAM[0][1]),
+					},
+				}
+
+				if finalState.CPU != wantFinalState.CPU {
+					t.Errorf("%v: got = %+v, want = %+v", data.Name, finalState.CPU, wantFinalState.CPU)
+				}
+			})
+		}
+	}
+}

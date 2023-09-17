@@ -1553,7 +1553,7 @@ func (c *cpu) stop() uint8 {
 	// This instruction puts the CPU into a low-power standby mode
 	// You might need to use sleep or other system-specific calls
 	// to properly implement the stop instruction
-	panic("stop")
+	return 4
 }
 
 // di: Disable Interrupts
