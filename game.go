@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"time"
 
 	"github.com/blewjy/fire-gb/gb"
@@ -14,6 +15,8 @@ type game struct {
 
 	ticks uint64
 	start time.Time
+
+	screen *ebiten.Image
 }
 
 func (g *game) Update() error {
@@ -26,10 +29,27 @@ func (g *game) Update() error {
 
 	g.gb.Update()
 
+	// update the screen
+	colorToBytes := func(c color.RGBA) []byte {
+		return []byte{c.R, c.G, c.B, c.A}
+	}
+
+	var displayBytes []byte
+	emuDisplay := g.gb.GetDisplay()
+	for _, row := range emuDisplay {
+		for _, pixel := range row {
+			displayBytes = append(displayBytes, colorToBytes(pixel)...)
+		}
+	}
+	g.screen.WritePixels(displayBytes)
 	return nil
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(0, 0)
+	op.GeoM.Scale(4, 4)
+	screen.DrawImage(g.screen, op)
 }
 
 func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {

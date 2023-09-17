@@ -17,9 +17,11 @@ func main() {
 	}
 
 	g := &game{
-		gb: gb.InitWithROM(romBytes),
-		
+		gb: gb.Init(romBytes),
+
 		start: time.Now(),
+
+		screen: ebiten.NewImage(160, 144),
 	}
 	if err := ebiten.RunGame(g); err != nil {
 		panic(err)
