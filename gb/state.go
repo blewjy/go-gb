@@ -36,11 +36,11 @@ func (gb *Gameboy) SetState(state State) {
 	}
 }
 
-func (gb *Gameboy) ExportState() State {
-	convertRamToMap := func(ram []uint8) map[uint16]uint8 {
+func (gb *Gameboy) ExportStateWithAddresses(addresses []uint16) State {
+	getBusData := func(addresses []uint16) map[uint16]uint8 {
 		m := map[uint16]uint8{}
-		for addr, val := range ram {
-			m[uint16(addr)] = val
+		for _, addr := range addresses {
+			m[addr] = gb.bus.read(addr)
 		}
 		return m
 	}
@@ -57,6 +57,6 @@ func (gb *Gameboy) ExportState() State {
 			PC: gb.cpu.pc,
 			SP: gb.cpu.sp,
 		},
-		RAM: convertRamToMap(gb.ram.memory),
+		RAM: getBusData(addresses),
 	}
 }

@@ -71,7 +71,7 @@ func TestAdtennantCpu(t *testing.T) {
 		panic(err)
 	}
 
-	choose := []string{"f0.json"}
+	skip := []string{"10.json"}
 
 	// Loop through each file
 	for _, file := range files {
@@ -79,10 +79,10 @@ func TestAdtennantCpu(t *testing.T) {
 			continue
 		}
 
-		shouldSkip := true
-		for _, s := range choose {
+		shouldSkip := false
+		for _, s := range skip {
 			if file.Name() == s {
-				shouldSkip = false
+				shouldSkip = true
 			}
 		}
 		if shouldSkip {
@@ -100,16 +100,15 @@ func TestAdtennantCpu(t *testing.T) {
 			panic(err)
 		}
 
-		choose := []string{"f0 28 f3"}
-
 		for _, data := range allData {
-			shouldDo := false
-			for _, s := range choose {
-				if data.Name == s {
-					shouldDo = true
+			skipThis := false
+			for _, cycleData := range data.Cycles {
+				if cycleData[0] == "0xff04" {
+					skipThis = true
 				}
 			}
-			if !shouldDo {
+
+			if skipThis {
 				continue
 			}
 
@@ -140,7 +139,12 @@ func TestAdtennantCpu(t *testing.T) {
 
 				tgb.StepCPU()
 
-				finalState := tgb.ExportState()
+				var targetRamAddresses []uint16
+				for _, ramData := range data.Final.RAM {
+					targetRamAddresses = append(targetRamAddresses, parseHexStringToUint16(ramData[0]))
+				}
+
+				finalState := tgb.ExportStateWithAddresses(targetRamAddresses)
 				wantFinalState := gb.State{
 					CPU: gb.CPUState{
 						A:  parseHexStringToUint8(data.Final.CPU.A),
@@ -154,13 +158,23 @@ func TestAdtennantCpu(t *testing.T) {
 						PC: parseHexStringToUint16(data.Final.CPU.PC),
 						SP: parseHexStringToUint16(data.Final.CPU.SP),
 					},
-					RAM: map[uint16]uint8{
-						parseHexStringToUint16(data.Final.RAM[0][0]): parseHexStringToUint8(data.Final.RAM[0][1]),
-					},
+					RAM: func() map[uint16]uint8 {
+						m := map[uint16]uint8{}
+						for _, ramData := range data.Final.RAM {
+							m[parseHexStringToUint16(ramData[0])] = parseHexStringToUint8(ramData[1])
+						}
+						return m
+					}(),
 				}
 
 				if finalState.CPU != wantFinalState.CPU {
 					t.Errorf("%v: got = %+v, want = %+v", data.Name, finalState.CPU, wantFinalState.CPU)
+				}
+
+				for ramAddr, ramData := range wantFinalState.RAM {
+					if finalState.RAM[ramAddr] != ramData {
+						t.Errorf("%v: RAM addr %04x, got = %+v, want = %+v", data.Name, ramAddr, finalState.RAM[ramAddr], ramData)
+					}
 				}
 			})
 		}
