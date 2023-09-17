@@ -13,11 +13,14 @@ type Gameboy struct {
 	ram   *ram
 	cart  *cart
 	lcd   *lcd
+	ppu   *ppu
+	dma   *dma
 
 	display [][]color.RGBA
 
 	shouldDebug bool
 	debug       bool
+	headless    bool
 }
 
 func Init(rom []byte) *Gameboy {
@@ -44,6 +47,8 @@ func InitWithoutDisplay(rom []byte) *Gameboy {
 	gb.ram = newRam()
 	gb.cart = newCart(rom)
 	gb.lcd = newLcd(gb)
+	gb.ppu = newPpu(gb)
+	gb.dma = newDma(gb)
 
 	return gb
 }
@@ -59,13 +64,26 @@ func (gb *Gameboy) Update() {
 
 		cycles := gb.cpu.step()
 
+		gb.ppu.tick()
 		for i := uint8(0); i < cycles; i++ {
+			gb.dma.tick()
 			gb.timer.clock()
 		}
 
 		currCycles += uint64(cycles)
 
 		gb.debug = false
+	}
+
+	if !gb.headless && len(gb.ppu.framePxReady) == 23040 {
+		c := 0
+		for i := 0; i < 144; i++ {
+			for j := 0; j < 160; j++ {
+				px := gb.ppu.framePxReady[c]
+				gb.display[i][j] = colorMap[colorChoice][px.color]
+				c++
+			}
+		}
 	}
 }
 
@@ -83,4 +101,8 @@ func (gb *Gameboy) GetDebug() string {
 
 func (gb *Gameboy) GetDisplay() [][]color.RGBA {
 	return gb.display
+}
+
+func (gb *Gameboy) SetHeadless(b bool) {
+	gb.headless = b
 }

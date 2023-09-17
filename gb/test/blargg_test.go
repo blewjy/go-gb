@@ -95,6 +95,7 @@ func TestBlargg(t *testing.T) {
 				panic(err)
 			}
 			gameboy := gb.InitWithoutDisplay(romBytes)
+			gameboy.SetHeadless(true)
 			for i := 0; i < tt.clocks; i++ {
 				gameboy.Update()
 				got := strings.ReplaceAll(gameboy.GetDebug(), "\n", "")

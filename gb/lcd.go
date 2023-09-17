@@ -7,13 +7,81 @@ type lcd struct {
 }
 
 func newLcd(gb *Gameboy) *lcd {
-	return &lcd{
+	l := &lcd{
 		gb: gb,
 	}
+	l.set_STAT_modeflag(STAT_mode_searchoam)
+	return l
 }
 
 func getBit(n uint8, pos uint8) uint8 {
 	return (n >> pos) & 1
+}
+
+/*
+LCDC uint8 // 0xFF40: LCDC (LCD control)
+STAT uint8 // 0xFF41: STAT (LCD status)
+SCY  uint8 // 0xFF42: SCY (Viewport Y-position)
+SCX  uint8 // 0xFF43: SCX (Viewport X-position)
+LY   uint8 // 0xFF44: LY (LCD Y-coordinate)
+LYC  uint8 // 0xFF45: LYC (LY compare)
+BGP  uint8 // 0xFF47: BGP (BG palette data)
+OBP0 uint8 // 0xFF48: OBP0 (OBJ palette 0 data)
+OBP1 uint8 // 0xFF49: OBP1 (OBJ palette 1 data)
+WY   uint8 // 0xFF4A: WY (Window Y-position)
+WX   uint8 // 0xFF4B: WX (Window X-position + 7)
+*/
+
+func (l *lcd) LCDC() uint8 {
+	return l.gb.bus.read(0xFF40)
+}
+
+func (l *lcd) STAT() uint8 {
+	return l.gb.bus.read(0xFF41)
+}
+
+func (l *lcd) SCY() uint8 {
+	return l.gb.bus.read(0xFF42)
+}
+
+func (l *lcd) SCX() uint8 {
+	return l.gb.bus.read(0xFF43)
+}
+
+func (l *lcd) LY() uint8 {
+	return l.gb.bus.read(0xFF44)
+}
+
+func (l *lcd) incLY() {
+	l.gb.bus.write(0xFF44, l.LY()+1)
+}
+
+func (l *lcd) resetLY() {
+	l.gb.bus.write(0xFF44, 0)
+}
+
+func (l *lcd) LYC() uint8 {
+	return l.gb.bus.read(0xFF45)
+}
+
+func (l *lcd) BGP() uint8 {
+	return l.gb.bus.read(0xFF47)
+}
+
+func (l *lcd) OBP0() uint8 {
+	return l.gb.bus.read(0xFF48)
+}
+
+func (l *lcd) OBP1() uint8 {
+	return l.gb.bus.read(0xFF49)
+}
+
+func (l *lcd) WY() uint8 {
+	return l.gb.bus.read(0xFF4A)
+}
+
+func (l *lcd) WX() uint8 {
+	return l.gb.bus.read(0xFF4B)
 }
 
 /*
@@ -29,35 +97,35 @@ func getBit(n uint8, pos uint8) uint8 {
 */
 
 func (l *lcd) LCDC_enable() bool {
-	return getBit(l.gb.bus.read(0xFF40), 7) > 0
+	return getBit(l.LCDC(), 7) > 0
 }
 
 func (l *lcd) LCDC_windowtilemap() uint8 {
-	return getBit(l.gb.bus.read(0xFF40), 6)
+	return getBit(l.LCDC(), 6)
 }
 
 func (l *lcd) LCDC_windowenable() bool {
-	return getBit(l.gb.bus.read(0xFF40), 5) > 0
+	return getBit(l.LCDC(), 5) > 0
 }
 
 func (l *lcd) LCDC_bgwindowtiledata() uint8 {
-	return getBit(l.gb.bus.read(0xFF40), 4)
+	return getBit(l.LCDC(), 4)
 }
 
 func (l *lcd) LCDC_bgtilemap() uint8 {
-	return getBit(l.gb.bus.read(0xFF40), 3)
+	return getBit(l.LCDC(), 3)
 }
 
 func (l *lcd) LCDC_objsize() uint8 {
-	return getBit(l.gb.bus.read(0xFF40), 2)
+	return getBit(l.LCDC(), 2)
 }
 
 func (l *lcd) LCDC_objenable() bool {
-	return getBit(l.gb.bus.read(0xFF40), 1) > 0
+	return getBit(l.LCDC(), 1) > 0
 }
 
 func (l *lcd) LCDC_bgwindowenable() bool {
-	return getBit(l.gb.bus.read(0xFF40), 0) > 0
+	return getBit(l.LCDC(), 0) > 0
 }
 
 /*
@@ -75,27 +143,27 @@ Bit 1-0 - Mode Flag                          (Mode 0-3, see below) (Read Only)
 */
 
 func (l *lcd) STAT_lycinterruptsource() bool {
-	return getBit(l.gb.bus.read(0xFF41), 6) > 0
+	return getBit(l.STAT(), 6) > 0
 }
 
 func (l *lcd) STAT_oaminterruptsource() bool {
-	return getBit(l.gb.bus.read(0xFF41), 5) > 0
+	return getBit(l.STAT(), 5) > 0
 }
 
 func (l *lcd) STAT_vblankinterruptsource() bool {
-	return getBit(l.gb.bus.read(0xFF41), 4) > 0
+	return getBit(l.STAT(), 4) > 0
 }
 
 func (l *lcd) STAT_hblankinterruptsource() bool {
-	return getBit(l.gb.bus.read(0xFF41), 3) > 0
+	return getBit(l.STAT(), 3) > 0
 }
 
 func (l *lcd) get_STAT_lycflag() bool {
-	return getBit(l.gb.bus.read(0xFF41), 2) > 0
+	return getBit(l.STAT(), 2) > 0
 }
 
 func (l *lcd) set_STAT_lycflag(equal bool) {
-	stat := l.gb.bus.read(0xFF41)
+	stat := l.STAT()
 	if equal {
 		l.gb.bus.write(0xFF41, stat|0b00000100)
 	} else {
@@ -113,12 +181,11 @@ const (
 )
 
 func (l *lcd) get_STAT_modeflag() STAT_mode {
-	return STAT_mode(l.gb.bus.read(0xFF41) & 0b11)
+	return STAT_mode(l.STAT() & 0b11)
 }
 
 func (l *lcd) set_STAT_modeflag(mode STAT_mode) {
-	stat := l.gb.bus.read(0xFF41)
-	l.gb.bus.write(0xFF41, (stat&0b11111100)|uint8(mode)&0b11)
+	l.gb.bus.write(0xFF41, (l.STAT()&0b11111100)|uint8(mode)&0b11)
 }
 
 /*
@@ -130,19 +197,16 @@ Bit 1-0 - Color for index 0
 */
 
 func (l *lcd) BGP_getcolor(idx uint8) color.RGBA {
-	bgp := l.gb.bus.read(0xFF47)
-	colorIdx := bgp >> (idx * 2) & 0b11
+	colorIdx := l.BGP() >> (idx * 2) & 0b11
 	return colorMap[colorChoice][colorIdx]
 }
 
 func (l *lcd) OBP0_getcolor(idx uint8) color.RGBA {
-	obp0 := l.gb.bus.read(0xFF48)
-	colorIdx := obp0 >> (idx * 2) & 0b11
+	colorIdx := l.OBP0() >> (idx * 2) & 0b11
 	return colorMap[colorChoice][colorIdx]
 }
 
 func (l *lcd) OBP1_getcolor(idx uint8) color.RGBA {
-	obp1 := l.gb.bus.read(0xFF49)
-	colorIdx := obp1 >> (idx * 2) & 0b11
+	colorIdx := l.OBP1() >> (idx * 2) & 0b11
 	return colorMap[colorChoice][colorIdx]
 }

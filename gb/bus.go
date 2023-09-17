@@ -30,8 +30,11 @@ func (b *bus) read(addr uint16) uint8 {
 	} else if addr < 0xFF80 {
 		if addr >= 0xFF04 && addr <= 0xFF07 {
 			return b.gb.timer.read(addr)
+		} else if addr == 0xFF46 {
+			return b.gb.dma.value
+		} else {
+			return b.gb.ram.read(addr)
 		}
-		return b.gb.ram.read(addr)
 	} else if addr < 0xFFFF {
 		return b.gb.ram.read(addr) // High RAM
 	} else if addr == 0xFFFF {
@@ -60,6 +63,9 @@ func (b *bus) write(addr uint16, value uint8) {
 	} else if addr < 0xFF80 {
 		if addr >= 0xFF04 && addr <= 0xFF07 {
 			b.gb.timer.write(addr, value)
+		} else if addr == 0xFF46 {
+			b.gb.dma.value = value
+			b.gb.dma.start()
 		} else {
 			b.gb.ram.write(addr, value)
 		}

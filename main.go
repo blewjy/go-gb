@@ -11,7 +11,9 @@ func main() {
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	romBytes, err := os.ReadFile("roms/dmg-acid2.gb")
+	//romBytes, err := os.ReadFile("roms/dmg-acid2.gb")
+	romBytes, err := os.ReadFile("roms/drmario.gb")
+	//romBytes, err := os.ReadFile("roms/tetris.gb")
 	if err != nil {
 		panic(err)
 	}
