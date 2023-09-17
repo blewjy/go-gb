@@ -12,6 +12,7 @@ type Gameboy struct {
 	timer *timer
 	ram   *ram
 	cart  *cart
+	lcd   *lcd
 
 	display [][]color.RGBA
 
@@ -20,15 +21,7 @@ type Gameboy struct {
 }
 
 func Init(rom []byte) *Gameboy {
-	gb := &Gameboy{
-		rom: rom,
-	}
-
-	gb.bus = newBus(gb)
-	gb.cpu = newCpu(gb)
-	gb.timer = newTimer(gb)
-	gb.ram = newRam()
-	gb.cart = newCart(rom)
+	gb := InitWithoutDisplay(rom)
 
 	for i := 0; i < 144; i++ {
 		gb.display = append(gb.display, []color.RGBA{})
@@ -50,6 +43,7 @@ func InitWithoutDisplay(rom []byte) *Gameboy {
 	gb.timer = newTimer(gb)
 	gb.ram = newRam()
 	gb.cart = newCart(rom)
+	gb.lcd = newLcd(gb)
 
 	return gb
 }
