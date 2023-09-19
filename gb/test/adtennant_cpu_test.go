@@ -103,7 +103,7 @@ func TestAdtennantCpu(t *testing.T) {
 		for _, data := range allData {
 			skipThis := false
 			for _, cycleData := range data.Cycles {
-				if cycleData[0] == "0xff04" {
+				if cycleData[0] == "0xff04" || cycleData[0] == "0xff00" {
 					skipThis = true
 				}
 			}

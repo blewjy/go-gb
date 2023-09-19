@@ -13,8 +13,8 @@ func main() {
 
 	//romBytes, err := os.ReadFile("roms/dmg-acid2.gb")
 	romBytes, err := os.ReadFile("roms/drmario.gb")
+	//romBytes, err := os.ReadFile("roms/sml.gb")
 	//romBytes, err := os.ReadFile("roms/tetris.gb")
-	//romBytes, err := os.ReadFile("roms/mooneye/add_sp_e_timing.gb")
 	if err != nil {
 		panic(err)
 	}

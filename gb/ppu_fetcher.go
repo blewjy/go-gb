@@ -1,7 +1,5 @@
 package gb
 
-import "fmt"
-
 type fetcherState uint8
 
 const (
@@ -171,11 +169,6 @@ func (f *fetcher) handleSleep() {
 					}
 				}
 
-				if f.ppu.gb.debug && f.ppu.gb.lcd.LY() == 88 {
-					// fmt.Printf("0xFF48 (OBP0): %08b, 0xFF49 (OBP1): %08b\n", globalBus.read(0xFF48), globalBus.read(0xFF49))
-					fmt.Printf("obj at X:%02X Y:%02X, obj.x: %02X, obj.y: %02X, obj.tile: %02X, obj.flags: %02X, obj.size: %02X, obj.fetchedX: %02X, obj flag bit7: %02X\n", f.fetcherX, f.ppu.gb.lcd.LY(), obj.x, obj.y, obj.tileIdx, obj.flags, obj.size, obj.fetchedX, getBit(obj.flags, 7))
-				}
-
 				y := (f.ppu.gb.lcd.LY() - obj.y) % 8
 
 				// if y-flipped
@@ -190,10 +183,6 @@ func (f *fetcher) handleSleep() {
 
 				bitLo := getBit(tileLo, uint8(obj.fetchedX))
 				bitHi := getBit(tileHi, uint8(obj.fetchedX))
-
-				if f.ppu.gb.debug && f.ppu.gb.lcd.LY() == 88 {
-					fmt.Printf("addrLo: %04X, addrHi: %04X, tileLo: %02X, tileHi: %02X, bitLo: %02X, bitHi: %02x\n", addrLo, addrHi, tileLo, tileHi, bitLo, bitHi)
-				}
 
 				// if X-flipped, we increment, else decrement
 				if getBit(obj.flags, 5) > 0 {

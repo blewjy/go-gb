@@ -7,14 +7,15 @@ import (
 type Gameboy struct {
 	rom []byte
 
-	bus   *bus
-	cpu   *cpu
-	timer *timer
-	ram   *ram
-	cart  *cart
-	lcd   *lcd
-	ppu   *ppu
-	dma   *dma
+	bus    *bus
+	cpu    *cpu
+	timer  *timer
+	ram    *ram
+	cart   *cart
+	lcd    *lcd
+	ppu    *ppu
+	dma    *dma
+	joypad *joypad
 
 	display [][]color.RGBA
 
@@ -50,6 +51,7 @@ func InitWithoutDisplay(rom []byte) *Gameboy {
 	gb.lcd = newLcd(gb)
 	gb.ppu = newPpu(gb)
 	gb.dma = newDma(gb)
+	gb.joypad = newJoypad()
 
 	//gb.bus.write(0xff10, 0x80)
 	//gb.bus.write(0xff11, 0xbf)
@@ -133,4 +135,63 @@ func (gb *Gameboy) SetHeadless(b bool) {
 
 func (gb *Gameboy) SetTestMode(b bool) {
 	gb.testMode = b
+}
+
+type JoypadButton int
+
+const (
+	JoypadButtonStart JoypadButton = iota
+	JoypadButtonSelect
+	JoypadButtonB
+	JoypadButtonA
+	JoypadButtonDown
+	JoypadButtonUp
+	JoypadButtonLeft
+	JoypadButtonRight
+)
+
+func (gb *Gameboy) SetButtonPressed(button JoypadButton) {
+	switch button {
+	case JoypadButtonStart:
+		gb.joypad.start = true
+	case JoypadButtonSelect:
+		gb.joypad.sel = true
+	case JoypadButtonB:
+		gb.joypad.b = true
+	case JoypadButtonA:
+		gb.joypad.a = true
+	case JoypadButtonDown:
+		gb.joypad.down = true
+	case JoypadButtonUp:
+		gb.joypad.up = true
+	case JoypadButtonLeft:
+		gb.joypad.left = true
+	case JoypadButtonRight:
+		gb.joypad.right = true
+	default:
+		panic("invalid joypad button")
+	}
+}
+
+func (gb *Gameboy) SetButtonReleased(button JoypadButton) {
+	switch button {
+	case JoypadButtonStart:
+		gb.joypad.start = false
+	case JoypadButtonSelect:
+		gb.joypad.sel = false
+	case JoypadButtonB:
+		gb.joypad.b = false
+	case JoypadButtonA:
+		gb.joypad.a = false
+	case JoypadButtonDown:
+		gb.joypad.down = false
+	case JoypadButtonUp:
+		gb.joypad.up = false
+	case JoypadButtonLeft:
+		gb.joypad.left = false
+	case JoypadButtonRight:
+		gb.joypad.right = false
+	default:
+		panic("invalid joypad button")
+	}
 }

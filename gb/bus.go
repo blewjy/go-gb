@@ -31,7 +31,9 @@ func (b *bus) read(addr uint16) uint8 {
 		fmt.Printf("!! WARNING !! Nintendo says use of this area is prohibited (read), addr: %04X\n", addr)
 		return b.gb.ram.read(addr) // Nintendo says use of this area is prohibited
 	} else if addr < 0xFF80 {
-		if addr >= 0xFF04 && addr <= 0xFF07 {
+		if addr == 0xFF00 {
+			return b.gb.joypad.read()
+		} else if addr >= 0xFF04 && addr <= 0xFF07 {
 			return b.gb.timer.read(addr)
 		} else if addr == 0xFF46 {
 			return b.gb.dma.value
@@ -73,7 +75,9 @@ func (b *bus) write(addr uint16, value uint8) {
 			b.gb.ram.write(addr, value) // Nintendo says use of this area is prohibited
 		}
 	} else if addr < 0xFF80 {
-		if addr >= 0xFF04 && addr <= 0xFF07 {
+		if addr == 0xFF00 {
+			b.gb.joypad.write(value)
+		} else if addr >= 0xFF04 && addr <= 0xFF07 {
 			b.gb.timer.write(addr, value)
 		} else if addr == 0xFF46 {
 			b.gb.dma.value = value

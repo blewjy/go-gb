@@ -22,10 +22,7 @@ type game struct {
 func (g *game) Update() error {
 	g.ticks++
 	g.updateTitle()
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		g.gb.EnableDebug()
-	}
+	g.handleInputs()
 
 	g.gb.Update()
 
@@ -59,4 +56,30 @@ func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (g *game) updateTitle() {
 	realtps := float64(g.ticks) / float64(time.Since(g.start).Seconds())
 	ebiten.SetWindowTitle(fmt.Sprintf("fire-gb | Updates/s: %.2f Ticks: %d TPS: %.2f FPS: %.2f", realtps, g.ticks, ebiten.ActualTPS(), ebiten.ActualFPS()))
+}
+
+var joypadInputMap = map[ebiten.Key]gb.JoypadButton{
+	ebiten.KeyEnter:     gb.JoypadButtonStart,
+	ebiten.KeyBackspace: gb.JoypadButtonSelect,
+	ebiten.KeyZ:         gb.JoypadButtonA,
+	ebiten.KeyX:         gb.JoypadButtonB,
+	ebiten.KeyDown:      gb.JoypadButtonDown,
+	ebiten.KeyUp:        gb.JoypadButtonUp,
+	ebiten.KeyLeft:      gb.JoypadButtonLeft,
+	ebiten.KeyRight:     gb.JoypadButtonRight,
+}
+
+func (g *game) handleInputs() {
+	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+		g.gb.EnableDebug()
+	}
+
+	for key, button := range joypadInputMap {
+		if inpututil.IsKeyJustPressed(key) {
+			g.gb.SetButtonPressed(button)
+		}
+		if inpututil.IsKeyJustReleased(key) {
+			g.gb.SetButtonReleased(button)
+		}
+	}
 }
