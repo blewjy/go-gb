@@ -20,12 +20,15 @@ func (b *bus) read(addr uint16) uint8 {
 	} else if addr < 0xE000 {
 		return b.gb.ram.read(addr)
 	} else if addr < 0xFE00 {
-		fmt.Println("!! WARNING !! Nintendo says use of this area is prohibited")
+		fmt.Printf("!! WARNING !! Nintendo says use of this area is prohibited (read), addr: %04X\n", addr)
 		return b.gb.ram.read(addr) // Nintendo says use of this area is prohibited
 	} else if addr < 0xFEA0 {
+		if b.gb.dma.active {
+			return 0xFF // cannot read oam if dma is active
+		}
 		return b.gb.ram.read(addr)
 	} else if addr < 0xFF00 {
-		fmt.Println("!! WARNING !! Nintendo says use of this area is prohibited")
+		fmt.Printf("!! WARNING !! Nintendo says use of this area is prohibited (read), addr: %04X\n", addr)
 		return b.gb.ram.read(addr) // Nintendo says use of this area is prohibited
 	} else if addr < 0xFF80 {
 		if addr >= 0xFF04 && addr <= 0xFF07 {
@@ -47,19 +50,28 @@ func (b *bus) read(addr uint16) uint8 {
 func (b *bus) write(addr uint16, value uint8) {
 	if addr < 0x8000 {
 		fmt.Printf("!! WARNING !! Writing to ROM, addr: %04X, value: %02X\n", addr, value)
-		b.gb.cart.write(addr, value)
+		if b.gb.testMode {
+			b.gb.cart.write(addr, value)
+		}
 	} else if addr < 0xA000 {
 		b.gb.ram.write(addr, value)
 	} else if addr < 0xE000 {
 		b.gb.ram.write(addr, value)
 	} else if addr < 0xFE00 {
-		fmt.Println("!! WARNING !! Nintendo says use of this area is prohibited")
-		b.gb.ram.write(addr, value) // Nintendo says use of this area is prohibited
+		fmt.Printf("!! WARNING !! Nintendo says use of this area is prohibited (write), addr: %04X, value: %02X\n", addr, value)
+		if b.gb.testMode {
+			b.gb.ram.write(addr, value) // Nintendo says use of this area is prohibited
+		}
 	} else if addr < 0xFEA0 {
+		if b.gb.dma.active {
+			return // cannot write oam if dma is active
+		}
 		b.gb.ram.write(addr, value)
 	} else if addr < 0xFF00 {
-		fmt.Println("!! WARNING !! Nintendo says use of this area is prohibited")
-		b.gb.ram.write(addr, value) // Nintendo says use of this area is prohibited
+		fmt.Printf("!! WARNING !! Nintendo says use of this area is prohibited (write), addr: %04X, value: %02X\n", addr, value)
+		if b.gb.testMode {
+			b.gb.ram.write(addr, value) // Nintendo says use of this area is prohibited
+		}
 	} else if addr < 0xFF80 {
 		if addr >= 0xFF04 && addr <= 0xFF07 {
 			b.gb.timer.write(addr, value)

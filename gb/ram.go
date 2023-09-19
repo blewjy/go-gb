@@ -11,9 +11,9 @@ func newRam() *ram {
 }
 
 func (r *ram) read(addr uint16) uint8 {
-	return r.memory[addr-0x8000]
+	return r.memory[addr]
 }
 
 func (r *ram) write(addr uint16, value uint8) {
-	r.memory[addr-0x8000] = value
+	r.memory[addr] = value
 }

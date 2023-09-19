@@ -21,6 +21,7 @@ type Gameboy struct {
 	shouldDebug bool
 	debug       bool
 	headless    bool
+	testMode    bool
 }
 
 func Init(rom []byte) *Gameboy {
@@ -50,6 +51,27 @@ func InitWithoutDisplay(rom []byte) *Gameboy {
 	gb.ppu = newPpu(gb)
 	gb.dma = newDma(gb)
 
+	//gb.bus.write(0xff10, 0x80)
+	//gb.bus.write(0xff11, 0xbf)
+	//gb.bus.write(0xff12, 0xf3)
+	//gb.bus.write(0xff14, 0xbf)
+	//gb.bus.write(0xff17, 0x3f)
+	//gb.bus.write(0xff19, 0xbf)
+	//gb.bus.write(0xff1a, 0x7f)
+	//gb.bus.write(0xff1b, 0xff)
+	//gb.bus.write(0xff1c, 0x9f)
+	//gb.bus.write(0xff1e, 0xbf)
+	//gb.bus.write(0xff20, 0xff)
+	//gb.bus.write(0xff23, 0xbf)
+	//gb.bus.write(0xff24, 0x77)
+	//gb.bus.write(0xff25, 0xf3)
+	//gb.bus.write(0xff26, 0xf1)
+	//
+	//gb.bus.write(0xff40, 0x91)
+	//gb.bus.write(0xff47, 0xfc)
+	//gb.bus.write(0xff48, 0xff)
+	//gb.bus.write(0xff49, 0xff)
+
 	return gb
 }
 
@@ -64,15 +86,16 @@ func (gb *Gameboy) Update() {
 
 		cycles := gb.cpu.step()
 
-		gb.ppu.tick()
 		for i := uint8(0); i < cycles; i++ {
 			gb.dma.tick()
 			gb.timer.clock()
+			gb.ppu.tick()
 		}
 
 		currCycles += uint64(cycles)
 
 		gb.debug = false
+
 	}
 
 	if !gb.headless && len(gb.ppu.framePxReady) == 23040 {
@@ -84,6 +107,7 @@ func (gb *Gameboy) Update() {
 				c++
 			}
 		}
+		//break
 	}
 }
 
@@ -105,4 +129,8 @@ func (gb *Gameboy) GetDisplay() [][]color.RGBA {
 
 func (gb *Gameboy) SetHeadless(b bool) {
 	gb.headless = b
+}
+
+func (gb *Gameboy) SetTestMode(b bool) {
+	gb.testMode = b
 }

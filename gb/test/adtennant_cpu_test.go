@@ -115,6 +115,7 @@ func TestAdtennantCpu(t *testing.T) {
 			t.Run(data.Name, func(t *testing.T) {
 				tgb := gb.InitWithoutDisplay(make([]uint8, 0xFFFF))
 				tgb.SetHeadless(true)
+				tgb.SetTestMode(true)
 				tgb.SetState(
 					gb.State{
 						CPU: gb.CPUState{
