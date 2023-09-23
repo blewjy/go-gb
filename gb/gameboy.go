@@ -47,7 +47,7 @@ func InitWithoutDisplay(rom []byte) *Gameboy {
 	gb.cpu = newCpu(gb)
 	gb.timer = newTimer(gb)
 	gb.ram = newRam()
-	gb.cart = newCart(rom)
+	gb.cart = newCart(gb, rom)
 	gb.lcd = newLcd(gb)
 	gb.ppu = newPpu(gb)
 	gb.dma = newDma(gb)
