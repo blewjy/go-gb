@@ -41,13 +41,14 @@ func newCart(gb *Gameboy, rom []uint8) *cart {
 		advancedBanking:    false,
 	}
 
-	fmt.Printf("title: %v\n", c.title)
-	fmt.Printf("cgb: $%02x\n", c.cgb)
-	fmt.Printf("cartType: $%02x\n", c.cartType)
-	fmt.Printf("romSize: $%02x\n", c.romSize)
-	fmt.Printf("ramSize: $%02x\n", c.ramSize)
-
-	fmt.Printf("len(rom): %v\n", len(c.rom))
+	if !c.gb.testMode {
+		fmt.Printf("title: %v\n", c.title)
+		fmt.Printf("cgb: $%02x\n", c.cgb)
+		fmt.Printf("cartType: $%02x\n", c.cartType)
+		fmt.Printf("romSize: $%02x\n", c.romSize)
+		fmt.Printf("ramSize: $%02x\n", c.ramSize)
+		fmt.Printf("len(rom): %v\n", len(c.rom))
+	}
 
 	return c
 }
@@ -60,7 +61,7 @@ func (c *cart) read(addr uint16) uint8 {
 	switch c.cartType {
 	case 0:
 		return c.rom[addr]
-	case 1:
+	case 1, 2, 3:
 		if addr < 0x4000 {
 			if !c.advancedBanking {
 				return c.rom[addr]
@@ -76,6 +77,10 @@ func (c *cart) read(addr uint16) uint8 {
 			return c.rom[finalAddr]
 		} else if addr >= 0xA000 && addr < 0xC000 {
 			if c.ramEnable {
+				if c.advancedBanking {
+					finalAddr := (uint64(addr) - 0xa000) + uint64(c.advancedBankSelect)*0x2000
+					return c.ram[finalAddr]
+				}
 				return c.ram[addr-0xA000]
 			}
 			return 0xFF
@@ -94,8 +99,8 @@ func (c *cart) write(addr uint16, value uint8) {
 	}
 
 	switch c.cartType {
-	case 0x00:
-	case 0x01:
+	case 0:
+	case 1, 2, 3:
 		if addr < 0x2000 {
 			if value&0xF == 0xA {
 				c.ramEnable = true
@@ -103,7 +108,7 @@ func (c *cart) write(addr uint16, value uint8) {
 				c.ramEnable = false
 			}
 		} else if addr < 0x4000 {
-			c.romBankSelect = (c.romBankSelect & 0xe0) | uint64(value&0x1F)
+			c.romBankSelect = uint64(value & 0x1F)
 			if c.romBankSelect == 0x00 || c.romBankSelect == 0x20 || c.romBankSelect == 0x40 || c.romBankSelect == 0x60 {
 				c.romBankSelect++
 			}

@@ -16,11 +16,11 @@ func main() {
 	//romBytes, err := os.ReadFile("roms/sml.gb")
 	//romBytes, err := os.ReadFile("roms/tetris.gb")
 	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/bits_bank1.gb")
-	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/ram_64kb.gb")
+	romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/ram_64kb.gb")
 	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/rom_1mb.gb")
 	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/rom_2mb.gb")
 	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/rom_4mb.gb")
-	romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/rom_8mb.gb")
+	//romBytes, err := os.ReadFile("roms/mooneye/emulator-only/mbc1/rom_8mb.gb")
 	if err != nil {
 		panic(err)
 	}
